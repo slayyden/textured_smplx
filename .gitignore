@@ -1,0 +1,7 @@
+.venv
+models/smplx 
+V02_05
+vposer_v1_0
+*.zip
+*.pyc
+*.DS_Store
