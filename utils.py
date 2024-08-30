@@ -116,9 +116,10 @@ def p3d_p2d(p3d, rmat, tvec, cameraMatrix, distCoeffs=None, img_shape=None):
         2. the output is [[u,v,z]...], when z>0, the point is visible
         3. by providing img_shape, you can get rid of invisible points due to high distortion
     '''
-    p_w = p3d.copy().T # world coordinate
+    # .T transposes the array to be matrix multiplied
+    p_w = p3d.copy().T # world coordinate (3 x V)
     p_c_0 = rmat.dot(p_w) + tvec.reshape(3, 1) # camera coordinate
-    z = p_c_0[2, :].copy().reshape(1, -1) # z (>0 are visible points)
+    z = p_c_0[2, :].copy().reshape(1, -1) # z (>0 are visible points) (1 x V)
     p_c_1 = p_c_0[:2] / z # camera coordinate (normalized)
     
     if img_shape:

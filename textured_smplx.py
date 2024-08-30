@@ -37,20 +37,29 @@ def get_texture_SMPL(fname_img, fname_obj, fname_pkl, npath, obj_name, template_
     img = cv2.imread(f_img)
     
     height,width = img.shape[:2]
-    
+
+    # vertex positions [(x1, y1, z1), (x2, y2, z2), ..., (xV, yV, zV)] with shape (V x 3)
     vv = obj_vv(f_obj)
+    # negate y and z coordinates
     vv[:, 1:] = -vv[:, 1:]
-    
+
+    # (u, v) coordinates [(u1, v1), ..., (uN, vN)] with shape (M x 2)
     vt = obj_vt(template_obj)
+    # flip uv coords horizontally
     vt[:, 1] = 1-vt[:, 1] # smplx texture is flipped
+    # (v1, v2, v3) vertex indices per triangle. (F x 3)
     fv = obj_fv(template_obj)
+    # (vt1, vt2, vt3) vertex uv coord indices (F x 3)
     ft = obj_ft(template_obj)
+    # map texture vertex texture coords [0, 1] -> [0, 1000]
     vtuv = (vt*1000).astype(np.int32)
-    
+
+    # face normals (F x 3)?
     fnorm = fv2norm(fv, vv)
     
     
     with open(fname_pkl,'rb') as f:
+        # only used for camera rotation and translation
         data = pickle.load(f)
     
     rmat = np.array(data['camera_rotation']).reshape(3,3)
@@ -107,7 +116,8 @@ def get_texture_SMPL(fname_img, fname_obj, fname_pkl, npath, obj_name, template_
         
     #cv2.imwrite(os.path.join(npath, 'T%05d_v_texture.png'%frame), texture)  
     #cv2.imwrite(os.path.join(npath, '%s_vis_texture.png'%obj_name), vis_texture)  
-    
+
+    # texture of face indices 
     img_f_texture = np.ones((1000,1000), dtype=np.int16) * -1
     for f in visible_f:
         cv2.drawContours(img_f_texture, [vtuv[ft[f]]], 0, int(f), -1)
@@ -120,10 +130,13 @@ def get_texture_SMPL(fname_img, fname_obj, fname_pkl, npath, obj_name, template_
      
     for x in range(1000):
         for y in range(1000):
+            # face index in texture
             f = img_f_texture[y,x]
             if f != -1:
+                # image space coords of face vertices
                 _vuv = vuv[fv[f]] #(3, 2)
                 
+                # texture coords of face vertices
                 _vtuv = vt[ft[f]] # (3,2)
                 px = np.array((x/1000.0, y/1000.0))
                 
@@ -132,12 +145,16 @@ def get_texture_SMPL(fname_img, fname_obj, fname_pkl, npath, obj_name, template_
                 p1px = px-p1
                 p1p2 = p2-p1
                 p1p3 = p3-p1
+                # barycentric coords of current texel
                 _u,_v = np.linalg.solve(((p1p2[0],p1p3[0]),(p1p2[1],p1p3[1])),p1px)
-                
+
+                # image space coord of current texel 
                 u,v = (_vuv[0] + _u*(_vuv[1]-_vuv[0]) + _v*(_vuv[2]-_vuv[0])).astype(np.int32)
-                
+
+                # world space coords of face verts
                 _vv = vv[fv[f]]
-                
+
+                # world space coords of current texel 
                 xyz = (_vv[0] + _u*(_vv[1]-_vv[0]) + _v*(_vv[2]-_vv[0]))
                 
                 vxyz = xyz

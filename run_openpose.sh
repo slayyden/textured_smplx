@@ -1,1 +1,1 @@
-/opt/openpose/build/examples/openpose/openpose.bin --display 0  --render_pose 1 --image_dir ./data/obj1/images --write_json ./data/obj1/keypoints --write_images ./data/obj1/pose_images --hand --face --model_folder /opt/openpose/models
+/opt/openpose/build/examples/openpose/openpose.bin --display 0  --render_pose 1 --image_dir ./data/obj1/images --write_json ./data/obj1/keypoints --write_images ./data/obj1/pose_images --hand --face --model_folder /opt/openpose/models --num_gpu 0
